@@ -1,0 +1,56 @@
+pipeline {
+    agent any
+
+    environment {
+        APP_NAME = "resume-matching-app"
+    }
+
+    stages {
+
+        stage('SCM Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/your-repo/resume-matcher.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Building the application...'
+                sh 'mvn clean package || python setup.py build'
+            }
+        }
+
+        stage('Code Analysis') {
+            steps {
+                echo 'Running static code analysis...'
+                // SonarQube example
+                // sh 'mvn sonar:sonar'
+            }
+        }
+
+        stage('Automated Testing') {
+            steps {
+                echo 'Running test cases...'
+                sh 'mvn test || pytest'
+            }
+        }
+
+        stage('Deployment') {
+            steps {
+                echo 'Deploying application...'
+                // Docker / Kubernetes / EC2 deploy
+                sh 'docker-compose up -d'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline executed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed. Check logs.'
+        }
+    }
+}
