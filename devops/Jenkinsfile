@@ -31,7 +31,7 @@ pipeline {
         stage('Automated Testing') {
             steps {
                 echo 'Running test cases...'
-                sh 'mvn test || pytest'
+                bash 'mvn test || pytest'
             }
         }
 
@@ -39,10 +39,21 @@ pipeline {
             steps {
                 echo 'Deploying application...'
                 // Docker / Kubernetes / EC2 deploy
-                sh 'docker-compose up -d'
+                bash 'docker-compose up -d'
             }
         }
     }
+    stage('Docker Build') {
+    steps {
+        bash 'docker build -t resume-matcher-backend .'
+    }
+}
+
+stage('Docker Run') {
+    steps {
+        bash 'docker run -d -p 5000:5000 resume-matcher-backend'
+    }
+}
 
     post {
         success {
@@ -53,4 +64,5 @@ pipeline {
         }
     }
 }
+
 
