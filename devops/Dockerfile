@@ -2,10 +2,10 @@
 FROM python:3.10-slim
 
 # Set working directory
-WORKDIR /app
+WORKDIR /backend
 
 # Copy dependency file first (for caching)
-COPY backend/requirements.txt .
+COPY requirements.txt .
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
@@ -18,4 +18,5 @@ EXPOSE 5000
 
 # Run the application
 CMD ["python", "app.py"]
+
 
