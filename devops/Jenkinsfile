@@ -10,14 +10,13 @@ pipeline {
         stage('SCM Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/your-repo/resume-matcher.git'
+                    url: 'https://github.com/bhadri-Raj-T/Resume-job-matching.git'
             }
         }
 
         stage('Build') {
             steps {
                 echo 'Building the application...'
-                sh 'mvn clean package || python setup.py build'
             }
         }
 
@@ -54,3 +53,4 @@ pipeline {
         }
     }
 }
+
