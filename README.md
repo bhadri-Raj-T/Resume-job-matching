@@ -10,7 +10,7 @@
   ## Changing the branch (very important)
   git checkout <branch_name>
 
-  git pull origin <branch-name>
+  git pull origin <branch_name>
 
   ## Normal commit
   git add .
@@ -20,5 +20,6 @@
   git push origin <branch_name>
 
   ## merge will be done manually in github
+
 
 
