@@ -30,7 +30,7 @@ matcher = ResumeMatcher(resumes, jobs)
 job_description = jobs[0]["text"]
 
 results = matcher.match_job_to_candidates(job_description, top_k=3)
-
+print("\n\njob title :",jobs[0]["title"])
 print("\nTop Candidates:\n")
 for r in results:
     print(r)
@@ -39,7 +39,7 @@ for r in results:
 job_description = jobs[1]["text"]
 
 results = matcher.match_job_to_candidates(job_description, top_k=3)
-
+print("\n\njob title :",jobs[1]["title"])
 print("\nTop Candidates:\n")
 for r in results:
     print(r)
