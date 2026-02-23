@@ -3,3 +3,6 @@ nltk
 scikit-learn
 pandas
 numpy
+rank_bm25
+pdfplumber
+python-docx
