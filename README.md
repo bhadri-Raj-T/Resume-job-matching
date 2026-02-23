@@ -8,7 +8,7 @@
   cd Resume-job-matching
 
   ## Changing the branch (very important)
-  git checkout <branch-name>
+  git checkout (branch-name)
 
   git pull origin <branch-name>
 
@@ -20,3 +20,4 @@
   git push origin <branch_name>
 
   ## merge will be done manually in github
+
