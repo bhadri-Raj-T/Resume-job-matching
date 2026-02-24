@@ -1,0 +1,202 @@
+[
+  {
+    "id": "DEV_001",
+    "title": "Senior DevOps Engineer",
+    "text": "Looking for Senior DevOps Engineer with 5+ years experience in AWS (EC2, S3, Lambda), Docker containerization, Kubernetes orchestration, CI/CD pipelines (Jenkins/GitLab CI), Infrastructure as Code (Terraform), and Python/Bash scripting. Must have experience with monitoring tools like Prometheus and Grafana."
+  },
+  {
+    "id": "DEV_002",
+    "title": "DevOps Platform Engineer",
+    "text": "Seeking DevOps Platform Engineer skilled in building and maintaining scalable infrastructure. Required skills: AWS/Azure, Kubernetes (EKS/AKS), Docker, CI/CD automation, Jenkins, Python development, Helm charts, and service mesh technologies like Istio. Experience with GitOps (ArgoCD) preferred."
+  },
+  {
+    "id": "DEV_003",
+    "title": "Cloud DevOps Specialist",
+    "text": "Cloud DevOps Specialist needed for multi-cloud environment. Expertise in AWS, Azure, or GCP required. Must have strong experience with Docker containers, Kubernetes cluster management, CI/CD pipeline implementation, Jenkins configuration, and Python automation scripts. Knowledge of security best practices and compliance required."
+  },
+  {
+    "id": "DS_001",
+    "title": "Senior Data Scientist",
+    "text": "Senior Data Scientist with 4+ years experience in machine learning, natural language processing (NLP), and deep learning. Required: Python, TensorFlow/PyTorch, pandas, scikit-learn. Must have experience building and deploying ML models, feature engineering, and working with large datasets. Knowledge of LLMs and transformers is a plus."
+  },
+  {
+    "id": "DS_002",
+    "title": "Machine Learning Engineer",
+    "text": "Machine Learning Engineer specializing in NLP and computer vision. Required skills: Python, TensorFlow, PyTorch, pandas, NumPy, scikit-learn. Experience with transformer models (BERT, GPT), MLOps practices, model deployment, and working with large-scale datasets. Knowledge of Docker and cloud ML services preferred."
+  },
+  {
+    "id": "DS_003",
+    "title": "NLP Research Scientist",
+    "text": "NLP Research Scientist to develop cutting-edge language models. Must have strong background in machine learning, deep learning, and NLP. Required: Python, TensorFlow, PyTorch, transformers, pandas. Experience with BERT, GPT, LLMs, and research publications in top conferences. PhD preferred but not required."
+  },
+  {
+    "id": "SWE_001",
+    "title": "Full Stack Software Engineer",
+    "text": "Full Stack Software Engineer with expertise in modern web technologies. Required: Python/Java, React/Angular, Node.js, SQL/NoSQL databases, REST APIs, Git, Docker. Experience with cloud platforms (AWS/Azure) and microservices architecture. Must have strong problem-solving skills and ability to work in agile environment."
+  },
+  {
+    "id": "SWE_002",
+    "title": "Backend Developer - Python",
+    "text": "Backend Developer with strong Python skills needed. Required: Python 3.x, Django/Flask/FastAPI, SQL databases, REST API design, Git, Docker. Experience with message queues (RabbitMQ/Kafka), caching (Redis), and cloud services (AWS). Knowledge of microservices architecture and testing practices essential."
+  },
+  {
+    "id": "SWE_003",
+    "title": "Frontend Developer - React",
+    "text": "Frontend Developer specializing in React.js. Required: JavaScript/TypeScript, React.js, Redux/Context API, HTML5, CSS3, responsive design, REST API integration, Git. Experience with Next.js, modern build tools, and performance optimization. Knowledge of UI/UX principles and cross-browser compatibility."
+  },
+  {
+    "id": "PM_001",
+    "title": "Technical Product Manager",
+    "text": "Technical Product Manager with experience in SaaS products. Required: Product strategy, roadmap planning, user stories, agile/scrum methodologies, market research, competitor analysis, stakeholder management, JIRA/Confluence. Technical background preferred with understanding of software development lifecycle."
+  },
+  {
+    "id": "PM_002",
+    "title": "AI Product Manager",
+    "text": "AI Product Manager to lead machine learning initiatives. Must understand ML/AI concepts, data science workflows, and model lifecycle. Experience with product management tools, user research, and go-to-market strategies. Background in computer science or data science preferred. Knowledge of current AI trends and technologies."
+  },
+  {
+    "id": "UX_001",
+    "title": "Senior UX/UI Designer",
+    "text": "Senior UX/UI Designer with 5+ years experience. Required: Figma/Sketch/Adobe XD, user research, wireframing, prototyping, usability testing, interaction design, design systems. Must have portfolio demonstrating mobile and web applications. Experience with user-centered design principles and accessibility standards."
+  },
+  {
+    "id": "UX_002",
+    "title": "Product Designer",
+    "text": "Product Designer to create intuitive user experiences. Skills needed: UI/UX design, Figma, prototyping, user flows, wireframing, visual design, design systems, user research. Must have strong portfolio and understanding of human-centered design. Experience with design thinking and agile methodology."
+  },
+  {
+    "id": "SEC_001",
+    "title": "Cybersecurity Analyst",
+    "text": "Cybersecurity Analyst with experience in threat detection and incident response. Required: Network security, SIEM tools, firewalls, VPNs, penetration testing, vulnerability assessment, security compliance (ISO 27001, NIST), incident handling. Certifications like CISSP, CEH, or CompTIA Security+ preferred."
+  },
+  {
+    "id": "SEC_002",
+    "title": "Application Security Engineer",
+    "text": "Application Security Engineer to integrate security in SDLC. Required: Secure coding practices, vulnerability assessment, penetration testing, OWASP Top 10, SAST/DAST tools, threat modeling. Experience with cloud security (AWS/Azure), DevSecOps practices, and security automation. Knowledge of compliance standards."
+  },
+  {
+    "id": "ARCH_001",
+    "title": "Cloud Solutions Architect",
+    "text": "Cloud Solutions Architect with deep AWS/Azure/GCP expertise. Required: Cloud architecture design, migration strategies, cost optimization, security best practices, high availability design, disaster recovery. Experience with microservices, serverless computing, containers, and infrastructure as code. Certification required."
+  },
+  {
+    "id": "ARCH_002",
+    "title": "Enterprise Architect",
+    "text": "Enterprise Architect to define technology strategy. Required: Enterprise architecture frameworks (TOGAF), solution design, technology evaluation, roadmap planning, stakeholder management, governance. Experience with cloud transformation, digital modernization, and large-scale system integration."
+  },
+  {
+    "id": "MLE_001",
+    "title": "Machine Learning Engineer - MLOps",
+    "text": "MLOps Engineer to deploy and maintain ML models. Required: Python, TensorFlow, PyTorch, Docker, Kubernetes, MLflow/Kubeflow, CI/CD for ML, model monitoring, cloud ML services (SageMaker/Azure ML). Experience with production ML systems, model versioning, and A/B testing."
+  },
+  {
+    "id": "MLE_002",
+    "title": "Deep Learning Engineer",
+    "text": "Deep Learning Engineer with expertise in computer vision or NLP. Required: Python, TensorFlow/PyTorch, deep learning architectures (CNNs, RNNs, Transformers), model optimization, distributed training. Experience with large-scale datasets, GPU computing, and research implementation. Publications a plus."
+  },
+  {
+    "id": "DE_001",
+    "title": "Data Engineer",
+    "text": "Data Engineer with strong ETL and data pipeline experience. Required: Python, SQL, Spark, Hadoop, Airflow, data warehousing, AWS/GCP data services, Kafka, database design. Experience with big data technologies, data modeling, and building scalable data infrastructure."
+  },
+  {
+    "id": "DE_002",
+    "title": "Big Data Engineer",
+    "text": "Big Data Engineer to build and maintain data platforms. Required: Spark, Hadoop, Kafka, Python/Scala, SQL, NoSQL databases, data pipeline tools (Airflow/NiFi), cloud data platforms. Experience with real-time data processing, data lake architecture, and performance optimization."
+  },
+  {
+    "id": "MOB_001",
+    "title": "iOS Developer",
+    "text": "iOS Developer with Swift expertise. Required: Swift, UIKit/SwiftUI, iOS SDK, Core Data, REST APIs, Git, App Store deployment. Experience with Combine, async/await, unit testing, and modern iOS architectures (MVVM, Coordinator). Knowledge of Objective-C is a plus."
+  },
+  {
+    "id": "MOB_002",
+    "title": "Android Developer",
+    "text": "Android Developer with Kotlin experience. Required: Kotlin, Android SDK, Jetpack Compose, MVVM architecture, Room database, REST APIs, Git, Play Store deployment. Experience with coroutines, flow, dependency injection (Dagger/Hilt), and material design guidelines."
+  },
+  {
+    "id": "MOB_003",
+    "title": "React Native Developer",
+    "text": "React Native Developer for cross-platform mobile apps. Required: React Native, JavaScript/TypeScript, Redux/MobX, REST/GraphQL APIs, native modules, app store deployment. Experience with Expo, performance optimization, and mobile UI/UX best practices."
+  },
+  {
+    "id": "QA_001",
+    "title": "QA Automation Engineer",
+    "text": "QA Automation Engineer with strong testing skills. Required: Selenium, Cypress, JUnit/TestNG, Python/Java, API testing (Postman/RestAssured), CI/CD integration, version control (Git). Experience with performance testing (JMeter), BDD (Cucumber), and test strategy development."
+  },
+  {
+    "id": "QA_002",
+    "title": "SDET - Software Development Engineer in Test",
+    "text": "SDET to build robust test frameworks. Required: Python/Java, test automation frameworks (PyTest/TestNG), Selenium, API testing, CI/CD pipelines, performance testing, security testing. Experience with microservices testing, contract testing, and test infrastructure development."
+  },
+  {
+    "id": "SYS_001",
+    "title": "Linux System Administrator",
+    "text": "Linux System Administrator for enterprise environment. Required: Linux (RHEL/CentOS/Ubuntu), shell scripting, system monitoring, performance tuning, security hardening, network configuration, backup solutions, virtualization (VMware/KVM). Experience with automation tools (Ansible/Puppet) preferred."
+  },
+  {
+    "id": "SYS_002",
+    "title": "Windows Server Administrator",
+    "text": "Windows Server Administrator with Active Directory expertise. Required: Windows Server 2016/2019/2022, Active Directory, Group Policy, PowerShell scripting, DNS/DHCP, IIS, Hyper-V, backup solutions, patch management. Experience with Azure AD and hybrid environments."
+  },
+  {
+    "id": "DBA_001",
+    "title": "Database Administrator - PostgreSQL",
+    "text": "PostgreSQL DBA with 5+ years experience. Required: PostgreSQL administration, performance tuning, query optimization, backup/recovery, replication, high availability, security, monitoring. Experience with other databases (MySQL/MongoDB) and cloud database services (RDS/Aurora)."
+  },
+  {
+    "id": "DBA_002",
+    "title": "MongoDB Database Administrator",
+    "text": "MongoDB DBA to manage NoSQL databases. Required: MongoDB administration, sharding, replication, performance tuning, backup strategies, security, aggregation pipelines. Experience with Atlas, other NoSQL databases, and cloud platforms. Knowledge of data modeling for document databases."
+  },
+  {
+    "id": "NET_001",
+    "title": "Network Engineer",
+    "text": "Network Engineer with Cisco expertise. Required: Routing protocols (OSPF/BGP), switching, firewalls, VPNs, network security, load balancers, monitoring tools. Certifications like CCNA/CCNP preferred. Experience with SD-WAN, cloud networking, and automation (Python/Ansible)."
+  },
+  {
+    "id": "NET_002",
+    "title": "Network Security Engineer",
+    "text": "Network Security Engineer to protect infrastructure. Required: Firewalls (Palo Alto/Checkpoint), IDS/IPS, VPNs, network segmentation, security policies, threat analysis, incident response. Experience with zero trust architecture, cloud security, and security frameworks."
+  },
+  {
+    "id": "BLK_001",
+    "title": "Blockchain Developer",
+    "text": "Blockchain Developer with smart contract experience. Required: Solidity, Web3.js/Ethers.js, Ethereum, smart contract security, Truffle/Hardhat, IPFS. Experience with DeFi protocols, NFTs, and Layer 2 solutions. Knowledge of other blockchain platforms (Polygon/Solana) preferred."
+  },
+  {
+    "id": "BLK_002",
+    "title": "Web3 Developer",
+    "text": "Web3 Developer to build decentralized applications. Required: JavaScript/TypeScript, React, Web3.js/Ethers.js, Solidity, smart contracts, IPFS, blockchain fundamentals. Experience with DeFi, NFTs, DAOs, and various blockchain networks. Understanding of wallet integration and security."
+  },
+  {
+    "id": "IOT_001",
+    "title": "IoT Solutions Architect",
+    "text": "IoT Solutions Architect to design end-to-end IoT systems. Required: IoT architecture, edge computing, sensor integration, MQTT/CoAP protocols, cloud IoT platforms (AWS IoT/Azure IoT), data processing, security. Experience with hardware integration and real-time systems."
+  },
+  {
+    "id": "IOT_002",
+    "title": "Embedded Systems Engineer",
+    "text": "Embedded Systems Engineer for IoT devices. Required: C/C++, embedded Linux/RTOS, microcontroller programming, hardware interfaces (I2C/SPI/UART), wireless protocols (Bluetooth/WiFi/Zigbee), low-power design. Experience with ARM Cortex, ESP32, or similar platforms."
+  },
+  {
+    "id": "ARVR_001",
+    "title": "AR/VR Developer",
+    "text": "AR/VR Developer with Unity expertise. Required: Unity 3D, C#, AR/VR SDKs (ARKit/ARCore/Oculus), 3D graphics, spatial computing, interaction design. Experience with multiplayer experiences, performance optimization, and mobile AR development. Knowledge of Unreal Engine a plus."
+  },
+  {
+    "id": "ARVR_002",
+    "title": "Unity Developer - XR Applications",
+    "text": "Unity Developer for XR applications. Required: Unity, C#, 3D mathematics, AR/VR development, Oculus/SteamVR/Magic Leap platforms, performance optimization. Experience with multiplayer networking, shader programming, and building immersive experiences for various XR devices."
+  },
+  {
+    "id": "GAME_001",
+    "title": "Game Developer - Unity",
+    "text": "Game Developer with Unity expertise. Required: Unity, C#, game physics, animation systems, UI/UX for games, optimization, multiplayer networking. Experience with mobile game development, in-app purchases, and game analytics. Passion for gaming and understanding of game design principles."
+  },
+  {
+    "id": "GAME_002",
+    "title": "Unreal Engine Developer",
+    "text": "Unreal Engine Developer for AAA games. Required: Unreal Engine, C++, Blueprints, game mechanics, multiplayer systems, performance optimization, graphics programming. Experience with console/PC game development, physics systems, and AI behavior trees. Knowledge of rendering pipelines."
+  }
+]
