@@ -7,3 +7,6 @@ rank_bm25
 pdfplumber
 python-docx
 pytest
+pymupdf 
+pdfminer.six 
+python-Levenshtein
