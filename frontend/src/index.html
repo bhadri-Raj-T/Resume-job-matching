@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ResumeIQ — Resume Matcher</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-mark">R</span>
+        <span class="logo-text">ResumeIQ</span>
+      </div>
+      <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="upload">Upload & Match</button>
+        <button class="tab-btn" data-tab="database">Database Match</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- ── TAB 1: Upload & Match ── -->
+    <section id="tab-upload" class="tab-panel active">
+      <div class="panel-header">
+        <h1>Upload Resumes <span class="amp">&</span> Match</h1>
+        <p class="subtitle">Upload one or multiple PDF resumes and a job description. Each resume is scored independently and ranked.</p>
+      </div>
+
+      <div class="form-grid">
+        <!-- Left: Job Description -->
+        <div class="card form-card">
+          <div class="card-label">
+            <span class="card-num">01</span>
+            Job Description
+          </div>
+          <textarea
+            id="uploadJobText"
+            class="textarea"
+            placeholder="Paste the job description here…"
+            spellcheck="false"
+          ></textarea>
+          <div class="char-count" id="uploadCharCount">0 characters</div>
+        </div>
+
+        <!-- Right: Resume Upload -->
+        <div class="card form-card">
+          <div class="card-label">
+            <span class="card-num">02</span>
+            Resume Files
+          </div>
+
+          <div class="drop-zone" id="dropZone">
+            <div class="drop-icon">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="18" x2="12" y2="12"/>
+                <line x1="9" y1="15" x2="15" y2="15"/>
+              </svg>
+            </div>
+            <p class="drop-text">Drag & drop PDF files here</p>
+            <p class="drop-sub">or</p>
+            <label class="btn btn-outline" for="resumeFiles">Browse Files</label>
+            <input type="file" id="resumeFiles" accept=".pdf" multiple hidden />
+          </div>
+
+          <div class="file-list" id="fileList"></div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-primary" id="uploadBtn">
+          <span class="btn-text">Analyse & Rank</span>
+          <span class="btn-icon">→</span>
+        </button>
+        <button class="btn btn-ghost" id="uploadClear">Clear</button>
+      </div>
+
+      <div id="uploadResults" class="results-section"></div>
+    </section>
+
+    <!-- ── TAB 2: Database Match ── -->
+    <section id="tab-database" class="tab-panel">
+      <div class="panel-header">
+        <h1>Database <span class="amp">Match</span></h1>
+        <p class="subtitle">Match a job description against the pre-indexed resume database to find the best candidates.</p>
+      </div>
+
+      <div class="form-grid single">
+        <div class="card form-card">
+          <div class="card-label">
+            <span class="card-num">01</span>
+            Job Description
+          </div>
+          <textarea
+            id="dbJobText"
+            class="textarea tall"
+            placeholder="Paste the job description here…"
+            spellcheck="false"
+          ></textarea>
+          <div class="char-count" id="dbCharCount">0 characters</div>
+
+          <div class="topk-row">
+            <label for="topK">Top results to show</label>
+            <div class="stepper">
+              <button class="stepper-btn" id="stepDown">−</button>
+              <span id="topKVal">5</span>
+              <button class="stepper-btn" id="stepUp">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-primary" id="dbMatchBtn">
+          <span class="btn-text">Search Database</span>
+          <span class="btn-icon">→</span>
+        </button>
+        <button class="btn btn-ghost" id="dbClear">Clear</button>
+      </div>
+
+      <div id="dbResults" class="results-section"></div>
+    </section>
+
+  </main>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
