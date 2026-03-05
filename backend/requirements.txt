@@ -1,5 +1,13 @@
 flask
+flask-cors
 nltk
 scikit-learn
 pandas
 numpy
+rank_bm25
+pdfplumber
+python-docx
+pytest
+pymupdf 
+pdfminer.six 
+python-Levenshtein
