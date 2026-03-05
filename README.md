@@ -21,6 +21,9 @@
 
   ## merge will be done manually in github
 
+  ## code to run testcase
+  
+  pytest -v
 
 
 
