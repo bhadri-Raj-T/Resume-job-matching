@@ -1,0 +1,168 @@
+{
+    "checking_1 (1).pdf": {
+        "status": "BLACKLISTED",
+        "issues": [
+            "Very small font detected"
+        ]
+    },
+    "Resume_001_Cloud_Architect.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_002_Mobile_Developer.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_003_UX_UI_Designer.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_004_System_Administrator.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_005_System_Administrator.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_006_Machine_Learning_Engineer.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_007_Mobile_Developer.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_008_UX_UI_Designer.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_009_Cloud_Architect.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_010_Cloud_Architect.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_011_Machine_Learning_Engineer.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_012_Database_Administrator.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_013_Cybersecurity_Analyst.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_014_System_Administrator.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_015_DevOps_Engineer.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_016_Database_Administrator.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_017_Data_Scientist.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_018_UX_UI_Designer.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_019_Frontend_Developer.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_020_Machine_Learning_Engineer.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_021_Machine_Learning_Engineer.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_022_Backend_Developer.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_023_DevOps_Engineer.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_024_Data_Scientist.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_025_DevOps_Engineer.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_026_Backend_Developer.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_027_QA_Engineer.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_028_Product_Manager.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_029_Cloud_Architect.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_030_Data_Scientist.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_031_Cybersecurity_Analyst.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_032_Cloud_Architect.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_033_Product_Manager.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_034_QA_Engineer.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_035_Frontend_Developer.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_036_Cloud_Architect.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_037_Data_Scientist.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_038_Cybersecurity_Analyst.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_039_Mobile_Developer.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    },
+    "Resume_040_Database_Administrator.pdf": {
+        "status": "CLEAN",
+        "issues": []
+    }
+}

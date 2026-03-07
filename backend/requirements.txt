@@ -1,13 +1,15 @@
-flask
-flask-cors
-nltk
 scikit-learn
 pandas
 numpy
-rank_bm25
-pdfplumber
-python-docx
-pytest
-pymupdf 
-pdfminer.six 
+pymupdf
+pdfminer.six
 python-Levenshtein
+fitz
+flask == 3.0.3
+flask-cors == 4.0.1
+nltk == 3.8.1
+rank_bm25 == 0.2.2
+pdfplumber == 0.11.2
+python-docx == 1.1.2
+pytest == 8.1.1
+pytest-cov == 5.0.0
