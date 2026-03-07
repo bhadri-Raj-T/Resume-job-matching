@@ -1,6 +1,6 @@
 # bm25_engine.py
 from rank_bm25 import BM25Okapi
-from utils import preprocess_text
+from .utils import preprocess_text
 
 
 class BM25Engine:

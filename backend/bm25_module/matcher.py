@@ -1,6 +1,6 @@
 # matcher.py
-from bm25_engine import BM25Engine
-from utils import preprocess_text
+from .bm25_engine import BM25Engine
+from .utils import preprocess_text
 
 
 class ResumeMatcher:

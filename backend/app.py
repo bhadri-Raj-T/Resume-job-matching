@@ -6,11 +6,10 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-BM25_DIR = os.path.join(BASE_DIR, "BM25-module")
-sys.path.insert(0, BM25_DIR)
+sys.path.insert(0, BASE_DIR)   # only backend/ on path, NOT bm25_module/ inside it
 
-from matcher import ResumeMatcher
-from parser  import extract_text_from_pdf
+from bm25_module.matcher import ResumeMatcher
+from bm25_module.parser  import extract_text_from_pdf
 import database as db
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -119,12 +118,12 @@ def upload_resume():
 
 @app.route("/match", methods=["POST"])
 def match():
-    if _matcher is None:
-        return jsonify({"error": "No resumes in warehouse. Upload resumes first."}), 503
     data  = request.get_json(silent=True) or {}
     jtext = (data.get("job_text") or "").strip()
     if not jtext:
-        return jsonify({"error": "'job_text' is required"}), 400
+        return jsonify({"error": "'job_text' is required"}), 400   # validate FIRST
+    if _matcher is None:
+        return jsonify({"error": "No resumes in warehouse. Upload resumes first."}), 503
     top_k = min(int(data.get("top_k", 5)), len(_resume_rows))
     try:
         results = _matcher.match_job_to_candidates(jtext, top_k=top_k)

@@ -4,7 +4,6 @@ numpy
 pymupdf
 pdfminer.six
 python-Levenshtein
-fitz
 flask == 3.0.3
 flask-cors == 4.0.1
 nltk == 3.8.1
