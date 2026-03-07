@@ -1,4 +1,3 @@
-# utils.py
 """
 Text preprocessing for BM25 indexing and querying.
 """
@@ -6,11 +5,13 @@ Text preprocessing for BM25 indexing and querying.
 import re
 import nltk
 
-# Download required NLTK data silently if not already present
+# Download required NLTK data silently if not already present.
+# Catches both LookupError (package missing) and OSError (Windows path issue
+# where the folder exists but the internal file like punkt/PY3_tab is absent).
 for _pkg in ("punkt", "punkt_tab", "stopwords"):
     try:
         nltk.data.find(f"tokenizers/{_pkg}" if "punkt" in _pkg else f"corpora/{_pkg}")
-    except LookupError:
+    except (LookupError, OSError):
         nltk.download(_pkg, quiet=True)
 
 from nltk.corpus import stopwords
