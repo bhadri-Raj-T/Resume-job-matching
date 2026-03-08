@@ -1,0 +1,36 @@
+{
+  "editor.formatOnSave": true,
+
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "index.html": "*.html"
+  },
+
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[javascript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[css]":        { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[html]":       { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+
+  "liveServer.settings.port": 5500,
+  "liveServer.settings.root": "/frontend/src",
+  "liveServer.settings.CustomBrowser": "chrome",
+  "liveServer.settings.donotShowInfoMsg": true,
+  "liveServer.settings.useLocalIp": false,
+
+  "liveServer.settings.ignoreFiles": [
+    "**/*.db",
+    "**/*.db-shm",
+    "**/*.db-wal",
+    "**/*.db-journal",
+    "**/backend/**",
+    "**/data/**",
+    "**/__pycache__/**",
+    "**/*.py",
+    "**/*.pyc",
+    "**/*.log"
+  ],
+
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/venv/Scripts/python.exe",
+  "editor.wordWrap": "on",
+  "editor.rulers": [80, 120]
+}

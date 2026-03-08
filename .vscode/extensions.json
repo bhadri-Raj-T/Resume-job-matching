@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    "ritwickdey.LiveServer",
+    "esbenp.prettier-vscode",
+    "ms-python.python",
+    "ms-python.debugpy",
+    "ms-python.pylance",
+    "humao.rest-client",
+    "streetsidesoftware.code-spell-checker",
+    "formulahendry.auto-rename-tag",
+    "zignd.html-css-class-completion",
+    "ecmel.vscode-html-css"
+  ]
+}
