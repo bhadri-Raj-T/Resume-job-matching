@@ -1,1 +1,0 @@
-print("Welcome to BM25 algo have fun")

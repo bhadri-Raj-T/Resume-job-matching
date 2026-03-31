@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ResumeIQ — AI Resume Optimizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-mark">R</span>
+        <span class="logo-text">ResumeIQ</span>
+        <span class="logo-badge">AI</span>
+      </div>
+      <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="upload">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Upload & Analyse
+        </button>
+        <button class="tab-btn" data-tab="database">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          Database Match
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- ══════════════════════════════════════════════════════════
+         TAB 1: Upload & Analyse
+    ══════════════════════════════════════════════════════════ -->
+    <section id="tab-upload" class="tab-panel active">
+
+      <div class="panel-header">
+        <h1>Resume <span class="accent-word">Optimization</span> Engine</h1>
+        <p class="subtitle">Upload resumes against a job description. Get match scores, skill gap analysis, improvement suggestions, and what-if impact simulations.</p>
+      </div>
+
+      <!-- Input grid -->
+      <div class="form-grid">
+
+        <!-- Job Description -->
+        <div class="card form-card">
+          <div class="card-label"><span class="card-num">01</span>Job Description</div>
+          <textarea id="uploadJobText" class="textarea" placeholder="Paste the full job description here…" spellcheck="false"></textarea>
+          <div class="char-count" id="uploadCharCount">0 characters</div>
+        </div>
+
+        <!-- Resume Upload -->
+        <div class="card form-card">
+          <div class="card-label"><span class="card-num">02</span>Resume Files (PDF)</div>
+
+          <div class="drop-zone" id="dropZone">
+            <div class="drop-icon">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="18" x2="12" y2="12"/>
+                <line x1="9" y1="15" x2="15" y2="15"/>
+              </svg>
+            </div>
+            <p class="drop-text">Drag & drop PDF files here</p>
+            <p class="drop-sub">or</p>
+            <label class="btn btn-outline" for="resumeFiles">Browse Files</label>
+            <input type="file" id="resumeFiles" accept=".pdf" multiple hidden />
+          </div>
+
+          <div class="file-list" id="fileList"></div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-primary" id="analyzeBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span class="btn-text">Analyse & Optimize</span>
+        </button>
+        <button class="btn btn-ghost" id="uploadClear">Clear All</button>
+      </div>
+
+      <!-- Results area -->
+      <div id="uploadResults"></div>
+
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════
+         TAB 2: Database Match (unchanged from previous version)
+    ══════════════════════════════════════════════════════════ -->
+    <section id="tab-database" class="tab-panel">
+
+      <div class="panel-header">
+        <h1>Database <span class="accent-word">Match</span></h1>
+        <p class="subtitle">Match a job description against the pre-indexed resume database to find the best candidates.</p>
+      </div>
+
+      <div class="form-grid single">
+        <div class="card form-card">
+          <div class="card-label"><span class="card-num">01</span>Job Description</div>
+          <textarea id="dbJobText" class="textarea tall" placeholder="Paste the job description here…" spellcheck="false"></textarea>
+          <div class="char-count" id="dbCharCount">0 characters</div>
+          <div class="topk-row">
+            <label>Top results to show</label>
+            <div class="stepper">
+              <button class="stepper-btn" id="stepDown">−</button>
+              <span id="topKVal">5</span>
+              <button class="stepper-btn" id="stepUp">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-primary" id="dbMatchBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          <span class="btn-text">Search Database</span>
+        </button>
+        <button class="btn btn-ghost" id="dbClear">Clear</button>
+      </div>
+
+      <div id="dbResults" class="results-section"></div>
+
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- What-if Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="whatifModal">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">What-If Simulator</div>
+          <div class="modal-subtitle" id="modalSubtitle"></div>
+        </div>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Select missing skills to simulate how your match score would improve if added to the resume.</p>
+        <div class="whatif-skills" id="whatifSkills"></div>
+        <div class="whatif-result" id="whatifResult"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="simulateBtn">
+          <span class="btn-text">Simulate Impact</span>
+        </button>
+        <button class="btn btn-ghost" id="modalCancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
