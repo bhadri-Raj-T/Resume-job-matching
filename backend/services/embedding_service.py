@@ -16,11 +16,7 @@ import re
 import math
 import json
 import logging
-from dotenv import load_dotenv
 
-load_dotenv()  # works locally, ignored in Jenkins
-
-api_key = os.getenv("GROQ_API_KEY")
 logger = logging.getLogger(__name__)
 
 # ── ✅ PUT YOUR GROQ API KEY HERE ─────────────────────────────────────────────
