@@ -36,8 +36,10 @@ pipeline {
                 echo "Running all tests..."
                 sh '''
                     . venv/bin/activate
+                    export PYTHONPATH=$(pwd)
+                    echo "PYTHONPATH is: $PYTHONPATH"
                     cd backend
-                    python -m pytest tests/ -v --tb=short 
+                    python -m pytest tests/ -v --tb=short
                 '''
             }
             post {
