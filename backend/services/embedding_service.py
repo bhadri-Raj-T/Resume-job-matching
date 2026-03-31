@@ -24,7 +24,7 @@ api_key = os.getenv("GROQ_API_KEY")
 logger = logging.getLogger(__name__)
 
 # ── ✅ PUT YOUR GROQ API KEY HERE ─────────────────────────────────────────────
-GROQ_API_KEY = "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"  # ← replace with gsk_xxxx
+GROQ_API_KEY = "Your api key"  # ← replace with gsk_xxxx
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Allow env var to override
