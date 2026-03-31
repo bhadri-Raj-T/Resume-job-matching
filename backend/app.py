@@ -1,16 +1,28 @@
 """
-app.py  --  Resume Job Matching API (warehouse-backed)
+app.py — Resume Job Matching API v2 (Hybrid Scoring)
+─────────────────────────────────────────────────────
+COMPANY FLOW  → /match, /upload_match  → BM25 (unchanged)
+INDIVIDUAL FLOW → /analyze, /whatif   → Hybrid, NO BM25
+
+BUG FIX: Uploaded resumes via /analyze are now added to the BM25 corpus
+so they appear in subsequent /match (database) queries.
 """
+
 import os, sys, json, tempfile, logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, BASE_DIR)   # only backend/ on path, NOT bm25_module/ inside it
+BM25_DIR = os.path.join(BASE_DIR, "BM25-module")
+SVC_DIR  = os.path.join(BASE_DIR, "services")
 
-from bm25_module.matcher import ResumeMatcher
-from bm25_module.parser  import extract_text_from_pdf
-import database as db
+sys.path.insert(0, BM25_DIR)
+sys.path.insert(0, SVC_DIR)
+
+from matcher         import ResumeMatcher
+from parser          import extract_text_from_pdf
+from feedback_engine import extract_skills
+from analysis_service import analyze_single, simulate_whatif_individual
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -18,182 +30,229 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)
 
-db.init_db()
-db.seed_jobs_from_json(os.path.join(BASE_DIR, "data", "jobs", "jobs.json"))
+# ── Pre-load resumes for company flow ────────────────────────────────────────
+RESUME_DIR = os.path.join(BASE_DIR, "data", "resumes")
+preloaded_resumes = []
+if os.path.exists(RESUME_DIR):
+    for filename in sorted(os.listdir(RESUME_DIR)):
+        if filename.lower().endswith(".pdf"):
+            fp = os.path.join(RESUME_DIR, filename)
+            try:
+                text = extract_text_from_pdf(fp)
+                if text and text.strip():
+                    preloaded_resumes.append({"id": filename, "text": text})
+            except Exception as e:
+                logger.warning(f"Skipping {filename}: {e}")
 
-# ─────────────────────── matcher state ────────────────────────
-_matcher     = None
-_resume_rows = []   # list of {id, text, _db_id}
+logger.info(f"Loaded {len(preloaded_resumes)} pre-indexed resumes")
 
-def _refresh_matcher():
-    global _matcher, _resume_rows
-    rows = []
-    with db.get_connection() as conn:
-        for r in conn.execute("SELECT id,filename,extracted_text FROM dim_resumes").fetchall():
-            rows.append({"id": r["filename"], "text": r["extracted_text"], "_db_id": r["id"]})
-    jobs = [{"id": j["job_code"], "text": j["description"]} for j in db.get_all_jobs()]
-    _resume_rows = rows
-    _matcher = ResumeMatcher(resumes=rows, jobs=jobs) if rows else None
-    logger.info("Matcher refreshed: %d resumes, %d jobs", len(rows), len(jobs))
-
-_refresh_matcher()
-
-# ─────────────────────── helpers ──────────────────────────────
-def _safe_extract(file_storage):
-    suf = os.path.splitext(file_storage.filename)[-1].lower() or ".pdf"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suf) as tmp:
-        file_storage.save(tmp.name); path = tmp.name
+JOB_FILE = os.path.join(BASE_DIR, "data", "jobs", "jobs.json")
+preloaded_jobs = []
+if os.path.exists(JOB_FILE):
     try:
-        return extract_text_from_pdf(path)
-    finally:
-        os.unlink(path)
+        with open(JOB_FILE, "r", encoding="utf-8") as f:
+            preloaded_jobs = json.load(f)
+        logger.info(f"Loaded {len(preloaded_jobs)} jobs")
+    except Exception as e:
+        logger.error(f"Failed to load jobs.json: {e}")
 
-# ─────────────────────── routes ───────────────────────────────
+db_matcher = None
+
+def _rebuild_db_matcher():
+    """Rebuild the BM25 db_matcher from the current preloaded_resumes list."""
+    global db_matcher
+    if preloaded_resumes:
+        try:
+            db_matcher = ResumeMatcher(
+                resumes=preloaded_resumes,
+                jobs=preloaded_jobs if preloaded_jobs else []
+            )
+            logger.info(f"BM25 database matcher ready with {len(preloaded_resumes)} resumes")
+        except Exception as e:
+            logger.error(f"Failed to init db_matcher: {e}")
+            db_matcher = None
+
+_rebuild_db_matcher()
+
+
+def _safe_extract_pdf(file_storage) -> str:
+    suffix = os.path.splitext(file_storage.filename)[-1].lower() or ".pdf"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        file_storage.save(tmp.name)
+        tmp_path = tmp.name
+    try:
+        text = extract_text_from_pdf(tmp_path)
+    finally:
+        os.unlink(tmp_path)
+    return text
+
+
 @app.route("/", methods=["GET"])
 def home():
     return jsonify({
-        "status": "Resume Job Matching API is running",
-        "warehouse_resumes": len(db.get_all_resumes()),
-        "warehouse_jobs":    len(db.get_all_jobs()),
-        "matcher_ready":     _matcher is not None
+        "status": "Resume Job Matching API v2",
+        "preloaded_resumes": len(preloaded_resumes),
+        "db_matcher_ready":  db_matcher is not None,
+        "flows": {
+            "company":    "/match, /upload_match  (BM25)",
+            "individual": "/analyze, /whatif      (hybrid — no BM25)"
+        }
     })
 
-@app.route("/companies", methods=["GET"])
-def list_companies():
-    return jsonify(db.get_all_companies())
 
-@app.route("/companies", methods=["POST"])
-def add_company():
-    data = request.get_json(silent=True) or {}
-    name = (data.get("name") or "").strip()
-    if not name:
-        return jsonify({"error": "Company 'name' is required"}), 400
-    cid = db.upsert_company(name, data.get("industry"), data.get("website"))
-    return jsonify({"id": cid, "name": name}), 201
-
-@app.route("/jobs", methods=["GET"])
-def list_jobs():
-    cid = request.args.get("company_id", type=int)
-    return jsonify(db.get_all_jobs(company_id=cid))
-
-@app.route("/jobs/<job_code>", methods=["GET"])
-def get_job(job_code):
-    job = db.get_job_by_code(job_code)
-    return (jsonify(job) if job else jsonify({"error": f"Job '{job_code}' not found"}), 404 if not job else 200)
-
-@app.route("/jobs", methods=["POST"])
-def add_job():
-    data = request.get_json(silent=True) or {}
-    for f in ("job_code","title","description"):
-        if not (data.get(f) or "").strip():
-            return jsonify({"error": f"'{f}' is required"}), 400
-    cid = data.get("company_id")
-    if not cid and data.get("company_name"):
-        cid = db.upsert_company(data["company_name"].strip())
-    jid = db.upsert_job(data["job_code"].strip(), data["title"].strip(), data["description"].strip(), company_id=cid)
-    _refresh_matcher()
-    return jsonify({"id": jid, "job_code": data["job_code"]}), 201
-
-@app.route("/resumes", methods=["GET"])
-def list_resumes():
-    return jsonify(db.get_all_resumes())
-
-@app.route("/upload_resume", methods=["POST"])
-def upload_resume():
-    if "resume" not in request.files:
-        return jsonify({"error": "Use field name 'resume'"}), 400
-    file = request.files["resume"]
-    if not file.filename.lower().endswith(".pdf"):
-        return jsonify({"error": "Only PDF files supported"}), 400
-    try:
-        text = _safe_extract(file)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 422
-    if not text.strip():
-        return jsonify({"error": "No readable text found"}), 422
-    rid, is_new = db.store_resume(file.filename, text)
-    _refresh_matcher()
-    return jsonify({"resume_id": rid, "filename": file.filename, "is_new": is_new,
-                    "message": "Stored & indexed." if is_new else "Already in warehouse."}), 201 if is_new else 200
+# ── COMPANY FLOW: BM25 (completely unchanged) ─────────────────────────────────
 
 @app.route("/match", methods=["POST"])
 def match():
-    data  = request.get_json(silent=True) or {}
-    jtext = (data.get("job_text") or "").strip()
-    if not jtext:
-        return jsonify({"error": "'job_text' is required"}), 400   # validate FIRST
-    if _matcher is None:
-        return jsonify({"error": "No resumes in warehouse. Upload resumes first."}), 503
-    top_k = min(int(data.get("top_k", 5)), len(_resume_rows))
+    if db_matcher is None:
+        return jsonify({"error": "Database matcher not initialized."}), 503
+    data = request.get_json(silent=True)
+    if not data or not data.get("job_text", "").strip():
+        return jsonify({"error": "'job_text' is required."}), 400
+    job_text = data["job_text"].strip()
+    top_k    = min(int(data.get("top_k", 5)), len(preloaded_resumes))
     try:
-        results = _matcher.match_job_to_candidates(jtext, top_k=top_k)
+        results = db_matcher.match_job_to_candidates(job_text, top_k=top_k)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    id_map = {r["id"]: r["_db_id"] for r in _resume_rows}
-    for r in results: r["resume_db_id"] = id_map.get(r["id"], -1)
-    jcode = data.get("job_code")
-    if jcode:
-        job = db.get_job_by_code(jcode)
-        if job: db.store_match_results(job["id"], results)
-    return jsonify({"job_text": jtext, "top_k": top_k,
-                    "total_resumes_in_warehouse": len(_resume_rows), "results": results})
+    return jsonify({"job_text": job_text, "top_k": top_k,
+                    "total_resumes_in_db": len(preloaded_resumes), "results": results})
 
-@app.route("/match/job/<job_code>", methods=["GET"])
-def match_by_job_code(job_code):
-    job = db.get_job_by_code(job_code)
-    if not job: return jsonify({"error": f"Job '{job_code}' not found"}), 404
-    if _matcher is None: return jsonify({"error": "No resumes in warehouse."}), 503
-    top_k = min(request.args.get("top_k", 5, type=int), len(_resume_rows))
-    try:
-        results = _matcher.match_job_to_candidates(job["description"], top_k=top_k)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    id_map = {r["id"]: r["_db_id"] for r in _resume_rows}
-    for r in results: r["resume_db_id"] = id_map.get(r["id"], -1)
-    db.store_match_results(job["id"], results)
-    return jsonify({"job_code": job_code, "job_title": job["title"],
-                    "company": job.get("company_name"), "top_k": top_k, "results": results})
-
-@app.route("/history", methods=["GET"])
-def match_history():
-    return jsonify(db.get_match_history(
-        job_id=request.args.get("job_id", type=int),
-        resume_id=request.args.get("resume_id", type=int),
-        limit=request.args.get("limit", 50, type=int)
-    ))
 
 @app.route("/upload_match", methods=["POST"])
 def upload_match():
     if "resumes" not in request.files:
-        return jsonify({"error": "Use field 'resumes'"}), 400
-    jtext = request.form.get("job_text","").strip()
-    if not jtext: return jsonify({"error": "'job_text' required"}), 400
-    files = request.files.getlist("resumes")
-    if not files or all(f.filename=="" for f in files):
-        return jsonify({"error": "No valid files"}), 400
-    parsed, errors = [], []
-    for f in files:
-        if not f.filename.lower().endswith(".pdf"):
-            errors.append({"file": f.filename, "error": "Not a PDF"}); continue
+        return jsonify({"error": "No resume files uploaded."}), 400
+    job_text = request.form.get("job_text", "").strip()
+    if not job_text:
+        return jsonify({"error": "'job_text' is required."}), 400
+    parsed_resumes, parse_errors = [], []
+    for file in request.files.getlist("resumes"):
+        if not file.filename.lower().endswith(".pdf"):
+            parse_errors.append({"file": file.filename, "error": "Not a PDF."}); continue
         try:
-            text = _safe_extract(f)
-            if not text.strip(): errors.append({"file": f.filename, "error": "No text"}); continue
-            rid, _ = db.store_resume(f.filename, text)
-            parsed.append({"id": f.filename, "text": text, "_db_id": rid})
+            text = _safe_extract_pdf(file)
+            if not text or not text.strip():
+                parse_errors.append({"file": file.filename, "error": "No text extracted."}); continue
+            parsed_resumes.append({"id": file.filename, "text": text})
         except Exception as e:
-            errors.append({"file": f.filename, "error": str(e)})
-    if not parsed:
-        return jsonify({"error": "No resumes parsed", "parse_errors": errors}), 422
+            parse_errors.append({"file": file.filename, "error": str(e)})
+    if not parsed_resumes:
+        return jsonify({"error": "No resumes parsed.", "parse_errors": parse_errors}), 422
     try:
-        tm = ResumeMatcher(resumes=parsed, jobs=[])
-        results = tm.match_job_to_candidates(jtext, top_k=len(parsed))
+        temp_matcher = ResumeMatcher(resumes=parsed_resumes, jobs=[])
+        results = temp_matcher.match_job_to_candidates(job_text, top_k=len(parsed_resumes))
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    id_map = {r["id"]: r["_db_id"] for r in parsed}
-    for r in results: r["resume_db_id"] = id_map.get(r["id"], -1)
-    _refresh_matcher()
-    return jsonify({"job_text": jtext, "total_uploaded": len(files),
-                    "total_scored": len(parsed), "results": results, "parse_errors": errors})
+    return jsonify({"job_text": job_text, "total_scored": len(parsed_resumes),
+                    "results": results, "parse_errors": parse_errors})
+
+
+# ── INDIVIDUAL FLOW: Hybrid scoring (NO BM25) ─────────────────────────────────
+
+@app.route("/analyze", methods=["POST"])
+def analyze():
+    """
+    Full analysis — hybrid scoring.
+    Works correctly for 1 or more resumes. Scores are always 0-100.
+
+    BUG FIX: After scoring, uploaded resumes are added to the global
+    preloaded_resumes list and the BM25 db_matcher is rebuilt, so they
+    participate in future /match (database tab) queries.
+    """
+    if "resumes" not in request.files:
+        return jsonify({"error": "No resume files uploaded."}), 400
+    job_text = request.form.get("job_text", "").strip()
+    if not job_text:
+        return jsonify({"error": "'job_text' is required."}), 400
+
+    parsed_resumes, parse_errors = [], []
+    for file in request.files.getlist("resumes"):
+        if not file.filename.lower().endswith(".pdf"):
+            parse_errors.append({"file": file.filename, "error": "Not a PDF."}); continue
+        try:
+            text = _safe_extract_pdf(file)
+            if not text or not text.strip():
+                parse_errors.append({"file": file.filename, "error": "No text extracted."}); continue
+            parsed_resumes.append({"id": file.filename, "text": text})
+        except Exception as e:
+            parse_errors.append({"file": file.filename, "error": str(e)})
+
+    if not parsed_resumes:
+        return jsonify({"error": "No resumes parsed.", "parse_errors": parse_errors}), 422
+
+    # ── BUG FIX: Add newly uploaded resumes to the global BM25 corpus ────────
+    added_to_db = []
+    existing_ids = {r["id"] for r in preloaded_resumes}
+    for resume in parsed_resumes:
+        if resume["id"] not in existing_ids:
+            preloaded_resumes.append({"id": resume["id"], "text": resume["text"]})
+            existing_ids.add(resume["id"])
+            added_to_db.append(resume["id"])
+            logger.info(f"Added uploaded resume to corpus: {resume['id']}")
+
+    # Rebuild BM25 matcher only if something new was added
+    if added_to_db:
+        _rebuild_db_matcher()
+        logger.info(f"BM25 corpus updated. Total resumes: {len(preloaded_resumes)}")
+    # ─────────────────────────────────────────────────────────────────────────
+
+    analyses = []
+    for resume in parsed_resumes:
+        try:
+            result = analyze_single(
+                resume_text=resume["text"],
+                job_text=job_text,
+                resume_id=resume["id"],
+            )
+            analyses.append(result)
+        except Exception as e:
+            logger.warning(f"Analysis failed for {resume['id']}: {e}")
+            analyses.append({"id": resume["id"], "error": str(e),
+                             "match_score": 0, "composite_score": 0})
+
+    analyses.sort(key=lambda x: x.get("match_score", 0), reverse=True)
+    resume_texts = {r["id"]: r["text"] for r in parsed_resumes}
+
+    return jsonify({
+        "job_text":           job_text,
+        "total_uploaded":     len(request.files.getlist("resumes")),
+        "total_scored":       len(parsed_resumes),
+        "analyses":           analyses,
+        "resume_texts":       resume_texts,
+        "parse_errors":       parse_errors,
+        "scoring_mode":       "individual_hybrid",
+        "added_to_db":        added_to_db,           # NEW: tells frontend what was added
+        "total_in_db":        len(preloaded_resumes), # NEW: total corpus size
+    })
+
+
+@app.route("/whatif", methods=["POST"])
+def whatif():
+    """
+    What-if simulation. NO BM25. Scores always >= 0.
+    Body: { resume_text, job_text, add_skills, current_semantic?, current_exp?, current_edu? }
+    """
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "JSON body required."}), 400
+    for field in ["resume_text", "job_text", "add_skills"]:
+        if field not in data:
+            return jsonify({"error": f"'{field}' is required."}), 400
+    try:
+        result = simulate_whatif_individual(
+            resume_text=data["resume_text"],
+            job_text=data["job_text"],
+            add_skills=data["add_skills"],
+            current_semantic=float(data.get("current_semantic", -1)),
+            current_exp=float(data.get("current_exp",      -1)),
+            current_edu=float(data.get("current_edu",      -1)),
+        )
+    except Exception as e:
+        logger.exception("Error during /whatif")
+        return jsonify({"error": str(e)}), 500
+    return jsonify(result)
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
