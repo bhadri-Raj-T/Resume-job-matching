@@ -2,67 +2,163 @@ pipeline {
     agent any
 
     environment {
-        APP_NAME = "resume-matching-app"
+        APP_NAME    = "resume-matcher"
+        IMAGE_NAME  = "resume-matcher-backend"
+        IMAGE_TAG   = "${BUILD_NUMBER}"
     }
 
     stages {
 
-        stage('SCM Checkout') {
+        stage('Checkout') {
             steps {
+                echo "Cloning repository..."
                 git branch: 'main',
                     url: 'https://github.com/bhadri-Raj-T/Resume-job-matching.git'
             }
         }
 
-        stage('Build') {
+        stage('Install Dependencies') {
             steps {
-                echo 'Building the application...'
+                echo "Installing Python dependencies..."
+                sh '''
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    pip install --upgrade pip
+                    pip install -r backend/requirements.txt
+                    python -m nltk.downloader punkt punkt_tab stopwords
+                '''
             }
         }
 
-        stage('Code Analysis') {
+        stage('Run Tests - Utils') {
             steps {
-                echo 'Running static code analysis...'
-                // SonarQube example
-                // sh 'mvn sonar:sonar'
+                echo "Running utils (preprocessing) tests..."
+                sh '''
+                    . venv/bin/activate
+                    cd backend
+                    python -m pytest tests/test_utils.py -v --tb=short
+                '''
             }
         }
 
-        stage('Automated Testing') {
+        stage('Run Tests - BM25 Engine') {
             steps {
-                echo 'Running test cases...'
-                bash 'mvn test || pytest'
+                echo "Running BM25 engine tests..."
+                sh '''
+                    . venv/bin/activate
+                    cd backend
+                    python -m pytest tests/test_bm25_engine.py -v --tb=short
+                '''
             }
         }
 
-        stage('Deployment') {
+        stage('Run Tests - Matcher') {
             steps {
-                echo 'Deploying application...'
-                // Docker / Kubernetes / EC2 deploy
-                bash 'docker-compose up -d'
+                echo "Running matcher logic tests..."
+                sh '''
+                    . venv/bin/activate
+                    cd backend
+                    python -m pytest tests/test_matcher.py -v --tb=short
+                '''
+            }
+        }
+
+        stage('Run Tests - Database') {
+            steps {
+                echo "Running warehouse/database tests..."
+                sh '''
+                    . venv/bin/activate
+                    cd backend
+                    python -m pytest tests/test_database.py -v --tb=short
+                '''
+            }
+        }
+
+        stage('Run Tests - API') {
+            steps {
+                echo "Running API integration tests..."
+                sh '''
+                    . venv/bin/activate
+                    cd backend
+                    python -m pytest tests/test_api.py -v --tb=short
+                '''
+            }
+        }
+
+        stage('Run Full Test Suite with Coverage') {
+            steps {
+                echo "Running complete test suite with coverage report..."
+                sh '''
+                    . venv/bin/activate
+                    cd backend
+                    python -m pytest tests/ -v --tb=short \
+                        --cov=. --cov-report=term-missing \
+                        --cov-report=xml:coverage.xml
+                '''
+            }
+            post {
+                always {
+                    // Archive coverage report if plugin is available
+                    archiveArtifacts artifacts: 'backend/coverage.xml', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                echo "Building Docker image..."
+                sh '''
+                    docker build \
+                        -f devops/Dockerfile \
+                        -t ${IMAGE_NAME}:${IMAGE_TAG} \
+                        -t ${IMAGE_NAME}:latest \
+                        .
+                '''
+            }
+        }
+
+        stage('Docker Deploy') {
+            steps {
+                echo "Deploying container..."
+                sh '''
+                    # Stop existing container if running
+                    docker stop ${IMAGE_NAME} 2>/dev/null || true
+                    docker rm   ${IMAGE_NAME} 2>/dev/null || true
+
+                    docker run -d \
+                        --name ${IMAGE_NAME} \
+                        -p 5000:5000 \
+                        -v resume_warehouse:/app/data \
+                        -e DB_PATH=/app/data/warehouse.db \
+                        --restart unless-stopped \
+                        ${IMAGE_NAME}:${IMAGE_TAG}
+                '''
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                echo "Waiting for app to start..."
+                sh '''
+                    sleep 15
+                    curl -f http://localhost:5000/ || (echo "Health check failed!" && exit 1)
+                '''
             }
         }
     }
-    stage('Docker Build') {
-    steps {
-        bash 'docker build -t resume-matcher-backend .'
-    }
-}
-
-stage('Docker Run') {
-    steps {
-        bash 'docker run -d -p 5000:5000 resume-matcher-backend'
-    }
-}
 
     post {
         success {
-            echo 'Pipeline executed successfully!'
+            echo "Pipeline SUCCESS — Build #${BUILD_NUMBER} deployed."
         }
         failure {
-            echo 'Pipeline failed. Check logs.'
+            echo "Pipeline FAILED — Check logs for Build #${BUILD_NUMBER}."
+            // Optionally stop broken container
+            sh 'docker stop ${IMAGE_NAME} 2>/dev/null || true'
+        }
+        always {
+            echo "Cleaning up workspace..."
+            sh 'rm -rf venv || true'
         }
     }
 }
-
-
