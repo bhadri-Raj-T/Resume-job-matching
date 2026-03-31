@@ -12,7 +12,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo "Cloning repository..."
-                git branch: 'main',
+                git branch: 'Devops_implemention',
                     url: 'https://github.com/bhadri-Raj-T/Resume-job-matching.git'
             }
         }
