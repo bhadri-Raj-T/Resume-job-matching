@@ -5,6 +5,7 @@ pipeline {
         APP_NAME    = "resume-matcher"
         IMAGE_NAME  = "resume-matcher-backend"
         IMAGE_TAG   = "${BUILD_NUMBER}"
+        PYTHONPATH  = "${WORKSPACE}"   // ✅ FIX: make root visible to Python
     }
 
     stages {
@@ -30,64 +31,9 @@ pipeline {
             }
         }
 
-        stage('Run Tests - Utils') {
+        stage('Run All Tests') {
             steps {
-                echo "Running utils (preprocessing) tests..."
-                sh '''
-                    . venv/bin/activate
-                    cd backend
-                    python -m pytest tests/test_utils.py -v --tb=short
-                '''
-            }
-        }
-
-        stage('Run Tests - BM25 Engine') {
-            steps {
-                echo "Running BM25 engine tests..."
-                sh '''
-                    . venv/bin/activate
-                    cd backend
-                    python -m pytest tests/test_bm25_engine.py -v --tb=short
-                '''
-            }
-        }
-
-        stage('Run Tests - Matcher') {
-            steps {
-                echo "Running matcher logic tests..."
-                sh '''
-                    . venv/bin/activate
-                    cd backend
-                    python -m pytest tests/test_matcher.py -v --tb=short
-                '''
-            }
-        }
-
-        stage('Run Tests - Database') {
-            steps {
-                echo "Running warehouse/database tests..."
-                sh '''
-                    . venv/bin/activate
-                    cd backend
-                    python -m pytest tests/test_database.py -v --tb=short
-                '''
-            }
-        }
-
-        stage('Run Tests - API') {
-            steps {
-                echo "Running API integration tests..."
-                sh '''
-                    . venv/bin/activate
-                    cd backend
-                    python -m pytest tests/test_api.py -v --tb=short
-                '''
-            }
-        }
-
-        stage('Run Full Test Suite with Coverage') {
-            steps {
-                echo "Running complete test suite with coverage report..."
+                echo "Running all tests..."
                 sh '''
                     . venv/bin/activate
                     cd backend
@@ -98,7 +44,6 @@ pipeline {
             }
             post {
                 always {
-                    // Archive coverage report if plugin is available
                     archiveArtifacts artifacts: 'backend/coverage.xml', allowEmptyArchive: true
                 }
             }
@@ -121,7 +66,6 @@ pipeline {
             steps {
                 echo "Deploying container..."
                 sh '''
-                    # Stop existing container if running
                     docker stop ${IMAGE_NAME} 2>/dev/null || true
                     docker rm   ${IMAGE_NAME} 2>/dev/null || true
 
@@ -153,7 +97,6 @@ pipeline {
         }
         failure {
             echo "Pipeline FAILED — Check logs for Build #${BUILD_NUMBER}."
-            // Optionally stop broken container
             sh 'docker stop ${IMAGE_NAME} 2>/dev/null || true'
         }
         always {
