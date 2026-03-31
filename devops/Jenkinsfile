@@ -9,20 +9,6 @@ pipeline {
     }
 
     stages {
-        stage('Pre-Cleanup Docker') {
-            steps {
-                echo "Cleaning old Docker containers and images..."
-                sh '''
-                    # Stop and remove your app container if exists
-                    docker stop ${IMAGE_NAME} 2>/dev/null || true
-                    docker rm ${IMAGE_NAME} 2>/dev/null || true
-
-                    # Remove old images of this app
-                    docker images "${IMAGE_NAME}" -q | xargs -r docker rmi -f
-                '''
-            }
-        }
-
         stage('Checkout') {
             steps {
                 echo "Cloning repository..."
