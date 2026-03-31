@@ -8,5 +8,5 @@ rank_bm25
 pdfplumber
 python-docx
 pytest
-openai
+pytest-cov
 groq
