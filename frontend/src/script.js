@@ -422,7 +422,7 @@ $("analyzeBtn").addEventListener("click", async () => {
 
   } catch (err) {
     console.error(err);
-    renderError("Could not reach the server. Make sure Flask is running on port 5000.", resultsEl);
+    renderError("Could not reach the server. The backend may be starting up — please wait 30 seconds and try again.", resultsEl);
   } finally {
     setLoading(btn, false);
   }
@@ -673,7 +673,7 @@ $("dbMatchBtn").addEventListener("click", async () => {
     showToast(`Top ${data.top_k} matches retrieved from database (${data.total_resumes_in_db} resumes indexed).`);
   } catch (err) {
     console.error(err);
-    renderError("Could not reach the server. Make sure Flask is running on port 5000.", resultsEl);
+    renderError("Could not reach the server. The backend may be starting up — please wait 30 seconds and try again.", resultsEl);
   } finally {
     setLoading(btn, false);
   }
