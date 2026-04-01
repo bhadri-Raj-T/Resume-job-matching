@@ -12,7 +12,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo "Cloning repository..."
-                git branch: 'main',
+                git branch: 'windows_docker',
                     url: 'https://github.com/bhadri-Raj-T/Resume-job-matching.git'
             }
         }
@@ -20,7 +20,7 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 echo "Installing Python dependencies..."
-                sh '''
+                bat '''
                     python3 -m venv venv
                     . venv/bin/activate
                     pip install --upgrade pip
@@ -33,7 +33,7 @@ pipeline {
         stage('Run Tests - Utils') {
             steps {
                 echo "Running utils (preprocessing) tests..."
-                sh '''
+                bat '''
                     . venv/bin/activate
                     cd backend
                     python -m pytest tests/test_utils.py -v --tb=short
@@ -44,7 +44,7 @@ pipeline {
         stage('Run Tests - BM25 Engine') {
             steps {
                 echo "Running BM25 engine tests..."
-                sh '''
+                bat '''
                     . venv/bin/activate
                     cd backend
                     python -m pytest tests/test_bm25_engine.py -v --tb=short
@@ -55,7 +55,7 @@ pipeline {
         stage('Run Tests - Matcher') {
             steps {
                 echo "Running matcher logic tests..."
-                sh '''
+                bat '''
                     . venv/bin/activate
                     cd backend
                     python -m pytest tests/test_matcher.py -v --tb=short
@@ -66,7 +66,7 @@ pipeline {
         stage('Run Tests - Database') {
             steps {
                 echo "Running warehouse/database tests..."
-                sh '''
+                bat '''
                     . venv/bin/activate
                     cd backend
                     python -m pytest tests/test_database.py -v --tb=short
@@ -77,7 +77,7 @@ pipeline {
         stage('Run Tests - API') {
             steps {
                 echo "Running API integration tests..."
-                sh '''
+                bat '''
                     . venv/bin/activate
                     cd backend
                     python -m pytest tests/test_api.py -v --tb=short
@@ -88,7 +88,7 @@ pipeline {
         stage('Run Full Test Suite with Coverage') {
             steps {
                 echo "Running complete test suite with coverage report..."
-                sh '''
+                bat '''
                     . venv/bin/activate
                     cd backend
                     python -m pytest tests/ -v --tb=short \
@@ -107,7 +107,7 @@ pipeline {
         stage('Docker Build') {
             steps {
                 echo "Building Docker image..."
-                sh '''
+                bat '''
                     docker build \
                         -f devops/Dockerfile \
                         -t ${IMAGE_NAME}:${IMAGE_TAG} \
@@ -120,7 +120,7 @@ pipeline {
         stage('Docker Deploy') {
             steps {
                 echo "Deploying container..."
-                sh '''
+                bat '''
                     # Stop existing container if running
                     docker stop ${IMAGE_NAME} 2>/dev/null || true
                     docker rm   ${IMAGE_NAME} 2>/dev/null || true
@@ -139,7 +139,7 @@ pipeline {
         stage('Health Check') {
             steps {
                 echo "Waiting for app to start..."
-                sh '''
+                bat '''
                     sleep 15
                     curl -f http://localhost:5000/ || (echo "Health check failed!" && exit 1)
                 '''
@@ -154,11 +154,11 @@ pipeline {
         failure {
             echo "Pipeline FAILED — Check logs for Build #${BUILD_NUMBER}."
             // Optionally stop broken container
-            sh 'docker stop ${IMAGE_NAME} 2>/dev/null || true'
+            bat 'docker stop ${IMAGE_NAME} 2>/dev/null || true'
         }
         always {
             echo "Cleaning up workspace..."
-            sh 'rm -rf venv || true'
+            bat 'rm -rf venv || true'
         }
     }
 }
