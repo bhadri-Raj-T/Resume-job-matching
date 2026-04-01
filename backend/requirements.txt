@@ -6,7 +6,8 @@ pandas
 numpy
 rank_bm25
 pdfplumber
+pypdf
 python-docx
-pytest
-openai
+gunicorn
 groq
+python-dotenv

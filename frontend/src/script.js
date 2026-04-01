@@ -10,7 +10,8 @@
                run a BM25 database search right after hybrid analysis
    ══════════════════════════════════════════════════════════════════ */
 
-const API_BASE = "http://127.0.0.1:5000";
+// ⚠️  REPLACE THIS with your Render backend URL after deploying
+const API_BASE = "https://YOUR-APP-NAME.onrender.com";
 
 /* ── Utilities ─────────────────────────────────────────────────────── */
 

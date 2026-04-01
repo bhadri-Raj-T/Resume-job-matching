@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: resume-matcher-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python -c "import nltk; nltk.download('punkt'); nltk.download('punkt_tab'); nltk.download('stopwords')"
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 300
+    plan: free
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: PYTHON_VERSION
+        value: 3.11.0

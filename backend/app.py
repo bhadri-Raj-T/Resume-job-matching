@@ -3,9 +3,6 @@ app.py — Resume Job Matching API v2 (Hybrid Scoring)
 ─────────────────────────────────────────────────────
 COMPANY FLOW  → /match, /upload_match  → BM25 (unchanged)
 INDIVIDUAL FLOW → /analyze, /whatif   → Hybrid, NO BM25
-
-BUG FIX: Uploaded resumes via /analyze are now added to the BM25 corpus
-so they appear in subsequent /match (database) queries.
 """
 
 import os, sys, json, tempfile, logging
@@ -19,16 +16,23 @@ SVC_DIR  = os.path.join(BASE_DIR, "services")
 sys.path.insert(0, BM25_DIR)
 sys.path.insert(0, SVC_DIR)
 
-from matcher         import ResumeMatcher
-from parser          import extract_text_from_pdf
-from feedback_engine import extract_skills
+from matcher          import ResumeMatcher
+from parser           import extract_text_from_pdf
+from feedback_engine  import extract_skills
 from analysis_service import analyze_single, simulate_whatif_individual
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app)
+
+# ── CORS: allow GitHub Pages frontend + localhost for dev ─────────────────────
+CORS(app, origins=[
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+    "http://localhost:3000",
+    "https://yourusername.github.io",   # ← WILL BE REPLACED AUTOMATICALLY
+])
 
 # ── Pre-load resumes for company flow ────────────────────────────────────────
 RESUME_DIR = os.path.join(BASE_DIR, "data", "resumes")
@@ -59,7 +63,6 @@ if os.path.exists(JOB_FILE):
 db_matcher = None
 
 def _rebuild_db_matcher():
-    """Rebuild the BM25 db_matcher from the current preloaded_resumes list."""
     global db_matcher
     if preloaded_resumes:
         try:
@@ -67,7 +70,7 @@ def _rebuild_db_matcher():
                 resumes=preloaded_resumes,
                 jobs=preloaded_jobs if preloaded_jobs else []
             )
-            logger.info(f"BM25 database matcher ready with {len(preloaded_resumes)} resumes")
+            logger.info(f"BM25 matcher ready with {len(preloaded_resumes)} resumes")
         except Exception as e:
             logger.error(f"Failed to init db_matcher: {e}")
             db_matcher = None
@@ -99,8 +102,6 @@ def home():
         }
     })
 
-
-# ── COMPANY FLOW: BM25 (completely unchanged) ─────────────────────────────────
 
 @app.route("/match", methods=["POST"])
 def match():
@@ -148,18 +149,8 @@ def upload_match():
                     "results": results, "parse_errors": parse_errors})
 
 
-# ── INDIVIDUAL FLOW: Hybrid scoring (NO BM25) ─────────────────────────────────
-
 @app.route("/analyze", methods=["POST"])
 def analyze():
-    """
-    Full analysis — hybrid scoring.
-    Works correctly for 1 or more resumes. Scores are always 0-100.
-
-    BUG FIX: After scoring, uploaded resumes are added to the global
-    preloaded_resumes list and the BM25 db_matcher is rebuilt, so they
-    participate in future /match (database tab) queries.
-    """
     if "resumes" not in request.files:
         return jsonify({"error": "No resume files uploaded."}), 400
     job_text = request.form.get("job_text", "").strip()
@@ -181,7 +172,7 @@ def analyze():
     if not parsed_resumes:
         return jsonify({"error": "No resumes parsed.", "parse_errors": parse_errors}), 422
 
-    # ── BUG FIX: Add newly uploaded resumes to the global BM25 corpus ────────
+    # Add new resumes to global BM25 corpus
     added_to_db = []
     existing_ids = {r["id"] for r in preloaded_resumes}
     for resume in parsed_resumes:
@@ -189,13 +180,8 @@ def analyze():
             preloaded_resumes.append({"id": resume["id"], "text": resume["text"]})
             existing_ids.add(resume["id"])
             added_to_db.append(resume["id"])
-            logger.info(f"Added uploaded resume to corpus: {resume['id']}")
-
-    # Rebuild BM25 matcher only if something new was added
     if added_to_db:
         _rebuild_db_matcher()
-        logger.info(f"BM25 corpus updated. Total resumes: {len(preloaded_resumes)}")
-    # ─────────────────────────────────────────────────────────────────────────
 
     analyses = []
     for resume in parsed_resumes:
@@ -215,24 +201,20 @@ def analyze():
     resume_texts = {r["id"]: r["text"] for r in parsed_resumes}
 
     return jsonify({
-        "job_text":           job_text,
-        "total_uploaded":     len(request.files.getlist("resumes")),
-        "total_scored":       len(parsed_resumes),
-        "analyses":           analyses,
-        "resume_texts":       resume_texts,
-        "parse_errors":       parse_errors,
-        "scoring_mode":       "individual_hybrid",
-        "added_to_db":        added_to_db,           # NEW: tells frontend what was added
-        "total_in_db":        len(preloaded_resumes), # NEW: total corpus size
+        "job_text":       job_text,
+        "total_uploaded": len(request.files.getlist("resumes")),
+        "total_scored":   len(parsed_resumes),
+        "analyses":       analyses,
+        "resume_texts":   resume_texts,
+        "parse_errors":   parse_errors,
+        "scoring_mode":   "individual_hybrid",
+        "added_to_db":    added_to_db,
+        "total_in_db":    len(preloaded_resumes),
     })
 
 
 @app.route("/whatif", methods=["POST"])
 def whatif():
-    """
-    What-if simulation. NO BM25. Scores always >= 0.
-    Body: { resume_text, job_text, add_skills, current_semantic?, current_exp?, current_edu? }
-    """
     data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "JSON body required."}), 400
@@ -255,4 +237,5 @@ def whatif():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)

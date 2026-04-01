@@ -4,11 +4,12 @@ services/embedding_service.py
 Semantic similarity using Groq Python SDK.
 
 Priority:
-  1. Groq (llama-3.3-70b-versatile) → AI semantic score   ← PRIMARY
+  1. Groq (llama-3.3-70b-versatile) → AI semantic score
   2. TF-IDF cosine fallback (if no key / package missing)
 
-Install: pip install groq
-Set key:  GROQ_API_KEY = "gsk_xxxx..."  on line 22 below
+The GROQ_API_KEY is read from the environment variable only.
+Set it in Render dashboard → Environment → GROQ_API_KEY
+Never hardcode it here.
 """
 
 import os
@@ -16,26 +17,18 @@ import re
 import math
 import json
 import logging
-from dotenv import load_dotenv
 
-load_dotenv()  # works locally, ignored in Jenkins
-
-api_key = os.getenv("GROQ_API_KEY")
 logger = logging.getLogger(__name__)
 
-# ── ✅ PUT YOUR GROQ API KEY HERE ─────────────────────────────────────────────
-GROQ_API_KEY = "Your api key"  # ← replace with gsk_xxxx
-# ─────────────────────────────────────────────────────────────────────────────
-
-# Allow env var to override
-_GROQ_KEY = os.getenv("GROQ_API_KEY", GROQ_API_KEY).strip()
+# Read key from environment only — never hardcode
+_GROQ_KEY = os.environ.get("GROQ_API_KEY", "").strip()
 
 try:
     from groq import Groq as _GroqClient
     _GROQ_AVAILABLE = True
 except ImportError:
     _GROQ_AVAILABLE = False
-    logger.warning("groq package not installed — run: pip install groq")
+    logger.warning("groq package not installed — falling back to TF-IDF")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -88,17 +81,14 @@ def get_tfidf_similarity(text1: str, text2: str) -> float:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-#  Groq semantic scoring  (uses groq Python SDK with streaming)
+#  Groq semantic scoring
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _groq_semantic_score(resume_text: str, job_text: str):
-    """
-    Use Groq to score semantic similarity between a resume and a JD.
-    Returns float 0.0-1.0, or None if unavailable/failed.
-    """
+    """Use Groq to score semantic similarity. Returns float 0.0-1.0 or None."""
     if not _GROQ_AVAILABLE:
         return None
-    if not _GROQ_KEY or _GROQ_KEY == "your-groq-api-key-here":
+    if not _GROQ_KEY:
         return None
 
     try:
@@ -136,12 +126,10 @@ Score guide:
             stop=None,
         )
 
-        # Collect streamed chunks
         response_text = ""
         for chunk in completion:
             response_text += chunk.choices[0].delta.content or ""
 
-        # Strip markdown fences if model added them
         response_text = re.sub(r"```json\s*", "", response_text).strip()
         response_text = re.sub(r"```\s*",     "", response_text).strip()
 
@@ -163,16 +151,14 @@ Score guide:
 def get_similarity(text1: str, text2: str) -> float:
     """
     Returns semantic similarity 0.0-1.0.
-    Uses Groq if key is set, otherwise falls back to TF-IDF.
+    Uses Groq if GROQ_API_KEY env var is set, otherwise TF-IDF fallback.
     """
     score = _groq_semantic_score(text1, text2)
     if score is not None:
         return score
-
-    logger.debug("Falling back to TF-IDF similarity (Groq unavailable or key not set)")
+    logger.debug("Using TF-IDF fallback (Groq key not set or unavailable)")
     return get_tfidf_similarity(text1, text2)
 
 
-# Kept for backward compatibility
 def get_embedding(text: str):
     return None
