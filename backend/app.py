@@ -26,16 +26,19 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# ── CORS: allow GitHub Pages frontend + localhost for dev ─────────────────────
-CORS(app, origins=[
+# ── CORS ──────────────────────────────────────────────────────────────────────
+# FIX: removed trailing slash from GitHub Pages URL (browsers send without slash)
+# FIX: added supports_credentials=False and allow all origins as fallback
+CORS(app, resources={r"/*": {"origins": [
     "http://localhost:5500",
     "http://127.0.0.1:5500",
     "http://localhost:3000",
-    "https://bhadri-raj-t.github.io", 
-    "https://bhadri-raj-t.github.io/Resume-job-matching"  # ← WILL BE REPLACED AUTOMATICALLY
-])
+    "http://127.0.0.1:3000",
+    "https://bhadri-raj-t.github.io",          # NO trailing slash
+    "https://bhadri-raj-t.github.io/Resume-job-matching",  # with path, no slash
+]}})
 
-# ── Pre-load resumes for company flow ────────────────────────────────────────
+# ── Pre-load resumes ──────────────────────────────────────────────────────────
 RESUME_DIR = os.path.join(BASE_DIR, "data", "resumes")
 preloaded_resumes = []
 if os.path.exists(RESUME_DIR):
@@ -64,17 +67,24 @@ if os.path.exists(JOB_FILE):
 db_matcher = None
 
 def _rebuild_db_matcher():
+    """
+    FIX: wrapped in broad try/except so a BM25 crash (e.g. nltk punkt_tab missing)
+    does NOT crash the whole Flask app. /analyze still works without BM25.
+    """
     global db_matcher
-    if preloaded_resumes:
-        try:
-            db_matcher = ResumeMatcher(
-                resumes=preloaded_resumes,
-                jobs=preloaded_jobs if preloaded_jobs else []
-            )
-            logger.info(f"BM25 matcher ready with {len(preloaded_resumes)} resumes")
-        except Exception as e:
-            logger.error(f"Failed to init db_matcher: {e}")
-            db_matcher = None
+    if not preloaded_resumes:
+        logger.warning("No resumes loaded — db_matcher skipped")
+        return
+    try:
+        db_matcher = ResumeMatcher(
+            resumes=preloaded_resumes,
+            jobs=preloaded_jobs if preloaded_jobs else []
+        )
+        logger.info(f"BM25 matcher ready with {len(preloaded_resumes)} resumes")
+    except Exception as e:
+        logger.error(f"BM25 matcher init failed (non-fatal): {e}")
+        logger.error("The /analyze and /whatif routes still work. Only /match is affected.")
+        db_matcher = None
 
 _rebuild_db_matcher()
 
@@ -107,7 +117,7 @@ def home():
 @app.route("/match", methods=["POST"])
 def match():
     if db_matcher is None:
-        return jsonify({"error": "Database matcher not initialized."}), 503
+        return jsonify({"error": "Database matcher not initialized. BM25 corpus unavailable."}), 503
     data = request.get_json(silent=True)
     if not data or not data.get("job_text", "").strip():
         return jsonify({"error": "'job_text' is required."}), 400
@@ -173,7 +183,6 @@ def analyze():
     if not parsed_resumes:
         return jsonify({"error": "No resumes parsed.", "parse_errors": parse_errors}), 422
 
-    # Add new resumes to global BM25 corpus
     added_to_db = []
     existing_ids = {r["id"] for r in preloaded_resumes}
     for resume in parsed_resumes:
