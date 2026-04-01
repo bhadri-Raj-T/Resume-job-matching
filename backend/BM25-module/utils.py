@@ -1,13 +1,15 @@
 # utils.py
 """
 Text preprocessing for BM25 indexing and querying.
+FIX: added punkt_tab to nltk downloads (required by newer nltk versions)
 """
 
 import re
 import nltk
 
 # Download required NLTK data silently if not already present
-for _pkg in ("punkt", "stopwords"):
+# FIX: added punkt_tab — newer nltk versions need this separately
+for _pkg in ("punkt", "punkt_tab", "stopwords"):
     try:
         nltk.data.find(f"tokenizers/{_pkg}" if "punkt" in _pkg else f"corpora/{_pkg}")
     except LookupError:
