@@ -1,5 +1,5 @@
 Create_virenv.txt
 myenv
-__pycache__
+*.pyc
 *.db
 coverage.xml
