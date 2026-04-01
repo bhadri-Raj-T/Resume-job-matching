@@ -11,7 +11,7 @@
    ══════════════════════════════════════════════════════════════════ */
 
 // ⚠️  REPLACE THIS with your Render backend URL after deploying
-const API_BASE = "https://YOUR-APP-NAME.onrender.com";
+const API_BASE = "https://resumeiq-385n.onrender.com";
 
 /* ── Utilities ─────────────────────────────────────────────────────── */
 
