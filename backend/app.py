@@ -4,7 +4,7 @@ app.py — Resume Job Matching API v2 (Hybrid Scoring)
 COMPANY FLOW  → /match, /upload_match  → BM25 (unchanged)
 INDIVIDUAL FLOW → /analyze, /whatif   → Hybrid, NO BM25
 """
-
+"""new deployment"""
 import os, sys, json, tempfile, logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
