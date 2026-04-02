@@ -123,16 +123,8 @@ pipeline {
                     docker run --rm \
                         -e DB_PATH=/tmp/test_warehouse.db \
                         --workdir /app \
-                        -v "${WORKSPACE}/coverage-output:/tmp/coverage" \
-                        ${IMAGE_NAME}:${IMAGE_TAG} \
                         python -m pytest tests/ -v --tb=short
                 '''
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'coverage-output/coverage.xml',
-                                     allowEmptyArchive: true
-                }
             }
         }
 
