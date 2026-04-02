@@ -1,14 +1,28 @@
+/*
+ * Jenkinsfile — Resume Job Matching Backend
+ * ─────────────────────────────────────────
+ * FIXES APPLIED:
+ *   1. REMOVED venv — all tests run inside Docker (no local Python env needed)
+ *   2. Health check hits GET / and checks HTTP 200 using --fail flag
+ *   3. Health check retries up to 5 times with 5 s sleep (app starts faster than 15 s wait)
+ *   4. Docker run uses --rm so containers are cleaned up automatically
+ *   5. Coverage report archived from the correct path
+ *   6. Workspace cleanup moved to post.always (not blocking build steps)
+ */
+
 pipeline {
     agent any
 
     environment {
-        APP_NAME    = "resume-matcher"
-        IMAGE_NAME  = "resume-matcher-backend"
-        IMAGE_TAG   = "${BUILD_NUMBER}"
+        APP_NAME   = "resume-matcher"
+        IMAGE_NAME = "resume-matcher-backend"
+        IMAGE_TAG  = "${BUILD_NUMBER}"
+        CONTAINER  = "resume-matcher-backend"   // running container name
     }
 
     stages {
 
+        // ── 1. Checkout ────────────────────────────────────────────────────
         stage('Checkout') {
             steps {
                 echo "Cloning repository..."
@@ -17,96 +31,10 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                echo "Installing Python dependencies..."
-                sh '''
-                    python3 -m venv venv
-                    . venv/bin/activate
-                    pip install --upgrade pip
-                    pip install -r backend/requirements.txt
-                    python -m nltk.downloader punkt punkt_tab stopwords
-                '''
-            }
-        }
-
-        stage('Run Tests - Utils') {
-            steps {
-                echo "Running utils (preprocessing) tests..."
-                sh '''
-                    . venv/bin/activate
-                    cd backend
-                    python -m pytest tests/test_utils.py -v --tb=short
-                '''
-            }
-        }
-
-        stage('Run Tests - BM25 Engine') {
-            steps {
-                echo "Running BM25 engine tests..."
-                sh '''
-                    . venv/bin/activate
-                    cd backend
-                    python -m pytest tests/test_bm25_engine.py -v --tb=short
-                '''
-            }
-        }
-
-        stage('Run Tests - Matcher') {
-            steps {
-                echo "Running matcher logic tests..."
-                sh '''
-                    . venv/bin/activate
-                    cd backend
-                    python -m pytest tests/test_matcher.py -v --tb=short
-                '''
-            }
-        }
-
-        stage('Run Tests - Database') {
-            steps {
-                echo "Running warehouse/database tests..."
-                sh '''
-                    . venv/bin/activate
-                    cd backend
-                    python -m pytest tests/test_database.py -v --tb=short
-                '''
-            }
-        }
-
-        stage('Run Tests - API') {
-            steps {
-                echo "Running API integration tests..."
-                sh '''
-                    . venv/bin/activate
-                    cd backend
-                    python -m pytest tests/test_api.py -v --tb=short
-                '''
-            }
-        }
-
-        stage('Run Full Test Suite with Coverage') {
-            steps {
-                echo "Running complete test suite with coverage report..."
-                sh '''
-                    . venv/bin/activate
-                    cd backend
-                    python -m pytest tests/ -v --tb=short \
-                        --cov=. --cov-report=term-missing \
-                        --cov-report=xml:coverage.xml
-                '''
-            }
-            post {
-                always {
-                    // Archive coverage report if plugin is available
-                    archiveArtifacts artifacts: 'backend/coverage.xml', allowEmptyArchive: true
-                }
-            }
-        }
-
+        // ── 2. Build Docker image (installs deps + NLTK data inside image) ─
         stage('Docker Build') {
             steps {
-                echo "Building Docker image..."
+                echo "Building Docker image ${IMAGE_NAME}:${IMAGE_TAG}..."
                 sh '''
                     docker build \
                         -f devops/Dockerfile \
@@ -117,16 +45,111 @@ pipeline {
             }
         }
 
+        // ── 3. Unit tests — run inside the freshly built image ─────────────
+        //    No venv needed: the image already has all deps installed.
+        //    Each test stage is a separate docker run --rm so failures are
+        //    isolated and containers are cleaned up automatically.
+
+        stage('Test — Utils') {
+            steps {
+                echo "Running preprocessing / utils tests inside Docker..."
+                sh '''
+                    docker run --rm \
+                        -e DB_PATH=/tmp/test_warehouse.db \
+                        --workdir /app \
+                        ${IMAGE_NAME}:${IMAGE_TAG} \
+                        python -m pytest tests/test_utils.py -v --tb=short
+                '''
+            }
+        }
+
+        stage('Test — BM25 Engine') {
+            steps {
+                echo "Running BM25 engine tests inside Docker..."
+                sh '''
+                    docker run --rm \
+                        -e DB_PATH=/tmp/test_warehouse.db \
+                        --workdir /app \
+                        ${IMAGE_NAME}:${IMAGE_TAG} \
+                        python -m pytest tests/test_bm25_engine.py -v --tb=short
+                '''
+            }
+        }
+
+        stage('Test — Matcher') {
+            steps {
+                echo "Running matcher logic tests inside Docker..."
+                sh '''
+                    docker run --rm \
+                        -e DB_PATH=/tmp/test_warehouse.db \
+                        --workdir /app \
+                        ${IMAGE_NAME}:${IMAGE_TAG} \
+                        python -m pytest tests/test_matcher.py -v --tb=short
+                '''
+            }
+        }
+
+        stage('Test — Database') {
+            steps {
+                echo "Running SQLite warehouse tests inside Docker..."
+                sh '''
+                    docker run --rm \
+                        -e DB_PATH=/tmp/test_warehouse.db \
+                        --workdir /app \
+                        ${IMAGE_NAME}:${IMAGE_TAG} \
+                        python -m pytest tests/test_database.py -v --tb=short
+                '''
+            }
+        }
+
+        stage('Test — API') {
+            steps {
+                echo "Running Flask API integration tests inside Docker..."
+                sh '''
+                    docker run --rm \
+                        -e DB_PATH=/tmp/test_warehouse.db \
+                        --workdir /app \
+                        ${IMAGE_NAME}:${IMAGE_TAG} \
+                        python -m pytest tests/test_api.py -v --tb=short
+                '''
+            }
+        }
+
+        // ── 4. Full suite with coverage (produces coverage.xml) ────────────
+        stage('Full Test Suite + Coverage') {
+            steps {
+                echo "Running complete test suite with coverage inside Docker..."
+                sh '''
+                    docker run --rm \
+                        -e DB_PATH=/tmp/test_warehouse.db \
+                        --workdir /app \
+                        -v "${WORKSPACE}/coverage-output:/tmp/coverage" \
+                        ${IMAGE_NAME}:${IMAGE_TAG} \
+                        python -m pytest tests/ -v --tb=short \
+                            --cov=. \
+                            --cov-report=term-missing \
+                            --cov-report=xml:/tmp/coverage/coverage.xml
+                '''
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'coverage-output/coverage.xml',
+                                     allowEmptyArchive: true
+                }
+            }
+        }
+
+        // ── 5. Deploy container ────────────────────────────────────────────
         stage('Docker Deploy') {
             steps {
-                echo "Deploying container..."
+                echo "Deploying container ${CONTAINER}..."
                 sh '''
-                    # Stop existing container if running
-                    docker stop ${IMAGE_NAME} 2>/dev/null || true
-                    docker rm   ${IMAGE_NAME} 2>/dev/null || true
+                    # Stop and remove any existing container
+                    docker stop ${CONTAINER} 2>/dev/null || true
+                    docker rm   ${CONTAINER} 2>/dev/null || true
 
                     docker run -d \
-                        --name ${IMAGE_NAME} \
+                        --name ${CONTAINER} \
                         -p 5000:5000 \
                         -v resume_warehouse:/app/data \
                         -e DB_PATH=/app/data/warehouse.db \
@@ -136,29 +159,46 @@ pipeline {
             }
         }
 
+        // ── 6. Health check ────────────────────────────────────────────────
+        // FIX: curl -f returns non-zero on HTTP errors (4xx/5xx).
+        //      Retry up to 5 times with 5 s between attempts so the app
+        //      has time to start (NLTK download + PDF pre-load can take ~10 s).
         stage('Health Check') {
             steps {
-                echo "Waiting for app to start..."
+                echo "Waiting for application to become healthy..."
                 sh '''
-                    sleep 15
-                    curl -f http://localhost:5000/ || (echo "Health check failed!" && exit 1)
+                    RETRIES=5
+                    WAIT=5
+                    for i in $(seq 1 $RETRIES); do
+                        echo "Health check attempt $i / $RETRIES ..."
+                        if curl --silent --fail http://localhost:5000/; then
+                            echo "\\nHealth check PASSED"
+                            exit 0
+                        fi
+                        echo "Not ready yet — waiting ${WAIT}s"
+                        sleep $WAIT
+                    done
+                    echo "Health check FAILED after $RETRIES attempts"
+                    docker logs ${CONTAINER} --tail 50
+                    exit 1
                 '''
             }
         }
     }
 
+    // ── Post-build actions ──────────────────────────────────────────────────
     post {
         success {
-            echo "Pipeline SUCCESS — Build #${BUILD_NUMBER} deployed."
+            echo "Pipeline SUCCESS — Build #${BUILD_NUMBER} deployed and healthy."
         }
         failure {
-            echo "Pipeline FAILED — Check logs for Build #${BUILD_NUMBER}."
-            // Optionally stop broken container
-            sh 'docker stop ${IMAGE_NAME} 2>/dev/null || true'
+            echo "Pipeline FAILED — Build #${BUILD_NUMBER}. Stopping broken container."
+            sh 'docker stop ${CONTAINER} 2>/dev/null || true'
         }
         always {
-            echo "Cleaning up workspace..."
-            sh 'rm -rf venv || true'
+            echo "Cleaning up dangling Docker images..."
+            sh 'docker image prune -f || true'
+            cleanWs()
         }
     }
 }

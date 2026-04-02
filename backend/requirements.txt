@@ -11,3 +11,4 @@ python-docx
 gunicorn
 groq
 python-dotenv
+pymupdf
