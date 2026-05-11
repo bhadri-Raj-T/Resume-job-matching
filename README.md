@@ -150,7 +150,7 @@ Whichever produces more characters wins.
 
 ## API Reference
 
-**Base URL:** `[https://resumeiq-385n.onrender.com](https://resumeiq-385n.onrender.com)`
+**Base URL:** [https://resumeiq-385n.onrender.com](https://resumeiq-385n.onrender.com)
 
 ### `GET /`
 Health check. Returns service status and whether the BM25 db_matcher is ready.
